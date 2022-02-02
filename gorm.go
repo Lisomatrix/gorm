@@ -18,7 +18,6 @@ const preparedStmtDBKey = "preparedStmt"
 
 // Config GORM config
 type Config struct {
-	SchemaResolver SchemaResolver
 	// GORM perform single create, update, delete operations in transactions by default to ensure database data integrity
 	// You can disable it by setting `SkipDefaultTransaction` to true
 	SkipDefaultTransaction bool
@@ -161,10 +160,6 @@ func Open(dialector Dialector, opts ...Option) (db *DB, err error) {
 
 	if config.cacheStore == nil {
 		config.cacheStore = &sync.Map{}
-	}
-
-	if config.SchemaResolver == nil {
-		config.SchemaResolver = &SimpleSchemaResolver{}
 	}
 
 	db = &DB{Config: config, clone: 1}

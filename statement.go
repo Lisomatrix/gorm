@@ -478,13 +478,11 @@ func (stmt *Statement) ParseWithSpecialTableName(value interface{}, specialTable
 	if stmt.Schema, err = schema.ParseWithSpecialTableName(value, stmt.DB.cacheStore, stmt.DB.NamingStrategy, specialTableName); err == nil && stmt.Table == "" {
 		if tables := strings.Split(stmt.Schema.Table, "."); len(tables) == 2 {
 			stmt.TableExpr = &clause.Expr{SQL: stmt.Quote(stmt.Schema.Table)}
-			//stmt.Table = tables[1]
-			stmt.Table = stmt.SchemaResolver.ResolveTable(stmt.Context, tables[1])
+			stmt.Table = tables[1]
 			return
 		}
 
-		//stmt.Table = stmt.Schema.Table
-		stmt.Table = stmt.SchemaResolver.ResolveTable(stmt.Context, stmt.Schema.Table)
+		stmt.Table = stmt.Schema.Table
 	}
 	return err
 }
