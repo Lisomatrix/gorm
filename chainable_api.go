@@ -20,6 +20,15 @@ func (db *DB) Model(value interface{}) (tx *DB) {
 	return
 }
 
+// Schema specify the schema the tables are on
+func (db *DB) Schema(schemaName string) (tx *DB) {
+	tx = db.getInstance()
+
+	tx.Statement.SchemaName = schemaName
+
+	return
+}
+
 // Clauses Add clauses
 func (db *DB) Clauses(conds ...clause.Expression) (tx *DB) {
 	tx = db.getInstance()
@@ -174,6 +183,8 @@ func (db *DB) Or(query interface{}, args ...interface{}) (tx *DB) {
 //     db.Joins("Account", DB.Select("id").Where("user_id = users.id AND name = ?", "someName").Model(&Account{}))
 func (db *DB) Joins(query string, args ...interface{}) (tx *DB) {
 	tx = db.getInstance()
+
+	query = db.Config.SchemaResolver.ResolveJoin(db.Statement, query)
 
 	if len(args) == 1 {
 		if db, ok := args[0].(*DB); ok {

@@ -21,6 +21,7 @@ import (
 // Statement statement
 type Statement struct {
 	*DB
+	SchemaName           string
 	TableExpr            *clause.Expr
 	Table                string
 	Model                interface{}
@@ -88,8 +89,22 @@ func (stmt *Statement) QuoteTo(writer clause.Writer, field interface{}) {
 	case clause.Table:
 		if v.Name == clause.CurrentTable {
 			if stmt.TableExpr != nil {
+
+				if stmt.TableExpr == nil || len(stmt.TableExpr.Vars) == 0 {
+					if stmt.SchemaName != "" {
+						stmt.DB.Dialector.QuoteTo(writer, stmt.SchemaName)
+						stmt.WriteByte('.')
+					}
+				}
+
 				stmt.TableExpr.Build(stmt)
 			} else {
+
+				if stmt.SchemaName != "" {
+					stmt.DB.Dialector.QuoteTo(writer, stmt.SchemaName)
+					stmt.WriteByte('.')
+				}
+
 				write(v.Raw, stmt.Table)
 			}
 		} else {
@@ -201,6 +216,7 @@ func (stmt *Statement) AddVar(writer clause.Writer, vars ...interface{}) {
 			}
 		case *DB:
 			subdb := v.Session(&Session{Logger: logger.Discard, DryRun: true}).getInstance()
+			subdb.Statement.SchemaName = v.Statement.SchemaName
 			if v.Statement.SQL.Len() > 0 {
 				var (
 					vars = subdb.Statement.Vars
@@ -489,6 +505,7 @@ func (stmt *Statement) ParseWithSpecialTableName(value interface{}, specialTable
 
 func (stmt *Statement) clone() *Statement {
 	newStmt := &Statement{
+		SchemaName:           stmt.SchemaName,
 		TableExpr:            stmt.TableExpr,
 		Table:                stmt.Table,
 		Model:                stmt.Model,
